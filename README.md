@@ -1,3 +1,5 @@
+I am now doing something similiar to delpoy spark on Openstack nova.
+
 spark-ec2
 =========
 
