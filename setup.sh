@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo yum install -y -q pssh
+sudo apt-get install -y -q pssh
 
 # usage: echo_time_diff name start_time end_time
 echo_time_diff () {
@@ -18,14 +18,6 @@ source /root/.bash_profile
 
 # Load the cluster variables set by the deploy script
 source ec2-variables.sh
-
-# Set hostname based on EC2 private DNS name, so that it is set correctly
-# even if the instance is restarted with a different private DNS name
-PRIVATE_DNS=`wget -q -O - http://169.254.169.254/latest/meta-data/local-hostname`
-PUBLIC_DNS=`wget -q -O - http://169.254.169.254/latest/meta-data/hostname`
-hostname $PRIVATE_DNS
-echo $PRIVATE_DNS > /etc/hostname
-export HOSTNAME=$PRIVATE_DNS  # Fix the bash built-in hostname variable too
 
 echo "Setting up Spark on `hostname`..."
 
@@ -66,12 +58,14 @@ echo_time_diff "rsync /root/spark-ec2" "$rsync_start_time" "$rsync_end_time"
 
 echo "Running setup-slave on all cluster nodes to mount filesystems, etc..."
 setup_slave_start_time="$(date +'%s')"
-pssh --inline \
+
+parallel-ssh --inline \
     --host "$MASTERS $SLAVES" \
     --user root \
     --extra-args "-t -t $SSH_OPTS" \
     --timeout 0 \
     "spark-ec2/setup-slave.sh"
+
 setup_slave_end_time="$(date +'%s')"
 echo_time_diff "setup-slave" "$setup_slave_start_time" "$setup_slave_end_time"
 
