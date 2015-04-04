@@ -17,7 +17,7 @@ pushd ~/spark-ec2 > /dev/null
 source ~/.bash_profile
 
 # Load the cluster variables set by the deploy script
-source /tmp/ec2-variables.sh
+source /tmp/spark-ec2/ec2-variables.sh
 
 echo "Setting up Spark on `hostname`..."
 
