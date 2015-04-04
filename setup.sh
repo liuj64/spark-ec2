@@ -19,6 +19,9 @@ source ~/.bash_profile
 # Load the cluster variables set by the deploy script
 source /tmp/spark-ec2/ec2-variables.sh
 
+PRIVATE_DNS=`hostname`
+export HOSTNAME=`hostname`
+
 echo "Setting up Spark on `hostname`..."
 
 # Set up the masters, slaves, etc files based on cluster env variables
