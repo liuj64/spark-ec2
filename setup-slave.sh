@@ -8,19 +8,19 @@ if [[ -e /sys/kernel/mm/transparent_hugepage/enabled ]]; then
 fi
 
 # Make sure we are in the spark-ec2 directory
-pushd /root/spark-ec2 > /dev/null
+pushd ~/spark-ec2 > /dev/null
 
 source ec2-variables.sh
 
 # Set hostname based on EC2 private DNS name, so that it is set correctly
 # even if the instance is restarted with a different private DNS name
-PRIVATE_DNS=`wget -q -O - http://169.254.169.254/latest/meta-data/local-hostname`
-hostname $PRIVATE_DNS
-echo $PRIVATE_DNS > /etc/hostname
-HOSTNAME=$PRIVATE_DNS  # Fix the bash built-in hostname variable too
+#PRIVATE_DNS=`wget -q -O - http://169.254.169.254/latest/meta-data/local-hostname`
+#hostname $PRIVATE_DNS
+#echo $PRIVATE_DNS > /etc/hostname
+#HOSTNAME=$PRIVATE_DNS  # Fix the bash built-in hostname variable too
 
-echo "checking/fixing resolution of hostname"
-bash /root/spark-ec2/resolve-hostname.sh
+#echo "checking/fixing resolution of hostname"
+#bash /root/spark-ec2/resolve-hostname.sh
 
 # Work around for R3 or I2 instances without pre-formatted ext3 disks
 instance_type=$(curl http://169.254.169.254/latest/meta-data/instance-type 2> /dev/null)
@@ -108,17 +108,17 @@ chmod -R a+w /mnt*
 
 # Remove ~/.ssh/known_hosts because it gets polluted as you start/stop many
 # clusters (new machines tend to come up under old hostnames)
-rm -f /root/.ssh/known_hosts
+rm -f ~/.ssh/known_hosts
 
 # Create swap space on /mnt
-/root/spark-ec2/create-swap.sh $SWAP_MB
+#/root/spark-ec2/create-swap.sh $SWAP_MB
 
 # Allow memory to be over committed. Helps in pyspark where we fork
 echo 1 > /proc/sys/vm/overcommit_memory
 
 # Add github to known hosts to get git@github.com clone to work
 # TODO(shivaram): Avoid duplicate entries ?
-cat /root/spark-ec2/github.hostkey >> /root/.ssh/known_hosts
+cat ~/spark-ec2/github.hostkey >> ~/.ssh/known_hosts
 
 # Create /usr/bin/realpath which is used by R to find Java installations
 # NOTE: /usr/bin/realpath is missing in CentOS AMIs. See

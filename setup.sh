@@ -11,13 +11,13 @@ echo_time_diff () {
 }
 
 # Make sure we are in the spark-ec2 directory
-pushd /root/spark-ec2 > /dev/null
+pushd ~/spark-ec2 > /dev/null
 
 # Load the environment variables specific to this AMI
-source /root/.bash_profile
+source ~/.bash_profile
 
 # Load the cluster variables set by the deploy script
-source ec2-variables.sh
+source /tmp/ec2-variables.sh
 
 echo "Setting up Spark on `hostname`..."
 
@@ -44,24 +44,24 @@ fi
 echo "Setting executable permissions on scripts..."
 find . -regex "^.+.\(sh\|py\)" | xargs chmod a+x
 
-echo "RSYNC'ing /root/spark-ec2 to other cluster nodes..."
+echo "RSYNC'ing ~/spark-ec2 to other cluster nodes..."
 rsync_start_time="$(date +'%s')"
 for node in $SLAVES $OTHER_MASTERS; do
   echo $node
-  rsync -e "ssh $SSH_OPTS" -az /root/spark-ec2 $node:/root &
+  rsync -e "ssh $SSH_OPTS" -az $HOME/spark-ec2 $node:$HOME &
   scp $SSH_OPTS ~/.ssh/id_rsa $node:.ssh &
   sleep 0.1
 done
 wait
 rsync_end_time="$(date +'%s')"
-echo_time_diff "rsync /root/spark-ec2" "$rsync_start_time" "$rsync_end_time"
+echo_time_diff "rsync ~/spark-ec2" "$rsync_start_time" "$rsync_end_time"
 
 echo "Running setup-slave on all cluster nodes to mount filesystems, etc..."
 setup_slave_start_time="$(date +'%s')"
 
 parallel-ssh --inline \
     --host "$MASTERS $SLAVES" \
-    --user root \
+    --user $USER \
     --extra-args "-t -t $SSH_OPTS" \
     --timeout 0 \
     "spark-ec2/setup-slave.sh"
@@ -84,7 +84,7 @@ for module in $MODULES; do
   fi
   module_init_end_time="$(date +'%s')"
   echo_time_diff "$module init" "$module_init_start_time" "$module_init_end_time"
-  cd /root/spark-ec2  # guard against init.sh changing the cwd
+  cd ~/spark-ec2  # guard against init.sh changing the cwd
 done
 
 # Deploy templates
@@ -94,8 +94,8 @@ echo "Creating local config files..."
 
 # Copy spark conf by default
 echo "Deploying Spark config files..."
-chmod u+x /root/spark/conf/spark-env.sh
-/root/spark-ec2/copy-dir /root/spark/conf
+chmod u+x ~/spark/conf/spark-env.sh
+~/spark-ec2/copy-dir ~/spark/conf
 
 # Setup each module
 for module in $MODULES; do
@@ -105,7 +105,7 @@ for module in $MODULES; do
   sleep 0.1
   module_setup_end_time="$(date +'%s')"
   echo_time_diff "$module setup" "$module_setup_start_time" "$module_setup_end_time"
-  cd /root/spark-ec2  # guard against setup.sh changing the cwd
+  cd ~/spark-ec2  # guard against setup.sh changing the cwd
 done
 
 popd > /dev/null
