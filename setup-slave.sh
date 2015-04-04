@@ -22,6 +22,9 @@ source ec2-variables.sh
 #echo "checking/fixing resolution of hostname"
 #bash /root/spark-ec2/resolve-hostname.sh
 
+PRIVATE_DNS=`hostname`
+export HOSTNAME=`hostname`
+
 # Work around for R3 or I2 instances without pre-formatted ext3 disks
 instance_type=$(curl http://169.254.169.254/latest/meta-data/instance-type 2> /dev/null)
 
